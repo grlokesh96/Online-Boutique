@@ -11,15 +11,6 @@ on:
 
   workflow_dispatch:
 
-# Reusable workflows can only ever narrow the GITHUB_TOKEN permissions granted
-# by their caller -- they can never elevate them. This block is the ceiling
-# passed down to security/build/docker/publish/notification. Without it the
-# repo default (read-only) applies, which sets actions/security-events to
-# "none" and makes the workflow fail *at startup* before any job is created:
-#   The nested job 'codeql-analysis' is requesting 'actions: read,
-#   security-events: write', but is only allowed 'actions: none,
-#   security-events: none'.
-# Keep this in sync with the per-job permissions blocks in the called workflows.
 permissions:
   contents: read
   actions: read
@@ -46,7 +37,9 @@ jobs:
   publish:
     name: Publish Images
     needs: docker
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: >
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
     uses: ./.github/workflows/publish.yaml
     secrets: inherit
 
