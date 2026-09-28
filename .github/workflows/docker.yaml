@@ -5,6 +5,11 @@ name: Docker Build, SBOM & Trivy
 
 env:
   DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
+  # All service images live in ONE Docker Hub repository. The service is
+  # encoded in the tag instead of the repo name:
+  #   <username>/online-boutique:<service>
+  #   <username>/online-boutique:<service>-sha-<full-sha>
+  IMAGE_REPO: online-boutique
 
 jobs:
   docker-build:
@@ -57,14 +62,14 @@ jobs:
         with:
           context: ./${{ matrix.path }}
           load: true
-          tags: ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest
+          tags: ${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,scope=${{ matrix.service }},mode=max
 
       - name: Generate SBOM (CycloneDX)
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest
+          image: ${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.service }}.cdx.json
 
@@ -76,7 +81,7 @@ jobs:
           retention-days: 30
 
       - name: Save image to artifact
-        run: docker save ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest -o /tmp/${{ matrix.service }}.tar
+        run: docker save ${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }} -o /tmp/${{ matrix.service }}.tar
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
@@ -118,7 +123,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest'
+          image-ref: '${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}'
           format: table
           exit-code: '0'
           ignore-unfixed: true
@@ -128,7 +133,7 @@ jobs:
       - name: Run Trivy severity report
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest'
+          image-ref: '${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}'
           format: sarif
           output: trivy-${{ matrix.service }}.sarif
           exit-code: '0'

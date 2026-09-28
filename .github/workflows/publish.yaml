@@ -5,6 +5,11 @@ name: Publish Images
 
 env:
   DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
+  # All service images live in ONE Docker Hub repository. The service is
+  # encoded in the tag instead of the repo name:
+  #   <username>/online-boutique:<service>
+  #   <username>/online-boutique:<service>-sha-<full-sha>
+  IMAGE_REPO: online-boutique
 
 jobs:
   docker-push:
@@ -45,8 +50,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Tag and push to Docker Hub
+        env:
+          IMAGE_REF: ${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}
+          IMAGE_REF_SHA: ${{ env.DOCKERHUB_REPO }}/${{ env.IMAGE_REPO }}:${{ matrix.service }}-sha-${{ github.sha }}
         run: |
-          docker tag ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest \
-                     ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:sha-${{ github.sha }}
-          docker push ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:latest
-          docker push ${{ env.DOCKERHUB_REPO }}/${{ matrix.service }}:sha-${{ github.sha }}
+          docker tag "$IMAGE_REF" "$IMAGE_REF_SHA"
+          docker push "$IMAGE_REF"
+          docker push "$IMAGE_REF_SHA"
