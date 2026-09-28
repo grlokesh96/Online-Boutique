@@ -19,6 +19,14 @@ name: Security & Code Quality
         description: Result of the Hadolint Dockerfile lint (all services)
         value: ${{ jobs.collect.outputs.hadolint }}
 
+# Ceiling for every job in this reusable workflow. Narrowed further per job
+# where needed. security-events: write is required by the SARIF upload steps
+# (Semgrep, CodeQL, ESLint, Hadolint).
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
   gitleaks:
     name: Secret Scanning (Gitleaks)
