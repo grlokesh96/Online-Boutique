@@ -1,7 +1,9 @@
+ARG NODE_VERSION=22
+
 # =========================
 # Dependencies
 # =========================
-FROM node:24-alpine AS deps
+FROM node:${NODE_VERSION}-alpine AS deps
 
 WORKDIR /app
 
@@ -18,7 +20,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 # =========================
 # Runtime
 # =========================
-FROM node:24-alpine AS runtime
+FROM node:${NODE_VERSION}-alpine AS runtime
 
 ENV NODE_ENV=production
 
