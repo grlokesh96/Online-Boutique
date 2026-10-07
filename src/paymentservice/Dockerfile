@@ -1,19 +1,33 @@
-# Build stage
-FROM node:20-alpine AS builder
+# =========================
+# Dependencies
+# =========================
+FROM node:24-alpine AS deps
 
-# Required by some dependencies' post-install scripts
+WORKDIR /app
+
+# Native dependencies required by some npm packages
 RUN apk add --no-cache python3 make g++
 
-WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev
 
-# Runtime stage
-FROM node:20-alpine
+# Reproducible dependency installation
+RUN npm ci --omit=dev && npm cache clean --force
+
+
+# =========================
+# Runtime
+# =========================
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY . .
+
+# Run as non-root user
+USER node
+
+ENV NODE_ENV=production
+
+COPY --chown=node:node --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node . .
 
 EXPOSE 50051
 
