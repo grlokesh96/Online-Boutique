@@ -9,7 +9,7 @@ spec:
   selector:
     matchLabels:
       app: recommendationservice
-  replicas: 4
+  replicas: 1
   template:
     metadata:
       labels:
