@@ -1,0 +1,30 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Explicitly declare file types
+*.go text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.java text eol=lf
+*.cs text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.proto text eol=lf
+Dockerfile text eol=lf
+
+# Declare binary file types
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Git LFS (if large assets are added later)
+# *.psd filter=lfs diff=lfs merge=lfs -text
